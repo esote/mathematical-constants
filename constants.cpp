@@ -8,7 +8,7 @@
 	Only change PRECISION
 */
 
-const long long PRECISION = 100, INACC = 4;
+const unsigned long long PRECISION = 100, INACC = 4;
 
 typedef boost::multiprecision::number<
 	boost::multiprecision::cpp_dec_float<PRECISION + INACC> > arb;
