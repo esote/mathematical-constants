@@ -42,18 +42,18 @@ arb catalans()
 	return 0.125 * (boost::math::trigamma<arb>(0.25) - PI * PI);
 }
 
-arb champernowne()
+arb champernowne(const unsigned long long b = 10)
 {
 	arb c;
 	for(unsigned long long n = 1;; ++n) {
 		arb sub;
 
 		for(unsigned long long k = 1; k <= n; ++k) {
-			sub += floor(log10(k));
+			sub += floor(log(k) / log(b));
 		}
 
 		const arb last = c;
-		c += n / pow(10, n + sub);
+		c += n / pow(b, n + sub);
 		if(c == last) break;
 	}
 
@@ -70,7 +70,7 @@ arb dottie()
 	arb x;
 	std::string precomp, postcomp;
 
-	for(x = 1; x== 1 || precomp != postcomp;) {
+	for(x = 1; x == 1 || precomp != postcomp;) {
 		precomp = static_cast<std::string>(x);
 		precomp.resize(PRECISION);
 
@@ -106,7 +106,7 @@ arb euler_mascheroni()
 	return boost::math::constants::euler<arb>();
 }
 
-arb favard(const unsigned long long r = 0)
+arb favard(const unsigned long long r = 2)
 {
 	if(r % 2 == 0) {
 		return (-4 / boost::math::constants::pi<arb>()) *
@@ -143,6 +143,11 @@ arb giesekings()
 		(4 * boost::math::constants::root_three<arb>());
 }
 
+arb glaisher_kinkelin()
+{
+	return boost::math::constants::glaisher<arb>();
+}
+
 arb golden_ratio()
 {
 	return boost::math::constants::phi<arb>();
@@ -158,9 +163,19 @@ arb inverse_golden_ratio()
 	return boost::math::constants::phi<arb>() - 1;
 }
 
+arb khinchin()
+{
+	return boost::math::constants::khinchin<arb>();
+}
+
 arb khinchin_levy()
 {
 	return pow(boost::math::constants::pi<arb>(), 2) / (12 * log(static_cast<arb>(2)));
+}
+
+arb kinkelin()
+{
+	return 1 / static_cast<arb>(12) - log(boost::math::constants::glaisher<arb>());
 }
 
 arb knuth()
@@ -182,6 +197,17 @@ arb lochs()
 {
 	return (6 * log(static_cast<arb>(2)) * log(static_cast<arb>(10))) /
 		pow(boost::math::constants::pi<arb>(), 2);
+}
+
+arb niven()
+{
+	arb c;
+	for(unsigned long long j = 2;; ++j) {
+		const arb last = c;
+		c+= 1 - 1/boost::math::zeta<arb>(j);
+		if(c == last) break;
+	}
+	return c + 1;
 }
 
 arb nortons()
@@ -325,6 +351,6 @@ arb zero()
 int main()
 {
 	std::cout << std::fixed << std::setprecision(PRECISION)
-		<< favard() << '\n';
+		<< wylers() << '\n';
 	return 0;
 }
