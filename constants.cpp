@@ -1,356 +1,352 @@
 #include <boost/math/constants/constants.hpp>
-#include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/math/special_functions.hpp>
+#include <boost/multiprecision/cpp_dec_float.hpp>
 #include <complex>
 #include <iostream>
+#include <limits>
 
-/*
-	Only change PRECISION
-*/
+template<typename T> T alladi_grinstead() {
+	T c, last;
 
-const unsigned long long PRECISION = 100, INACC = 4;
-
-typedef boost::multiprecision::number<
-	boost::multiprecision::cpp_dec_float<PRECISION + INACC> > arb;
-
-arb alladi_grinstead()
-{
-	arb c;
-
-	for(unsigned long long n = 1;; ++n) {
-		const arb last = c;
-		c += (boost::math::zeta<arb>(n + 1) - 1) / n;
-		if(c == last) break;
+	for(unsigned long long n = 1; n == 1 || c != last; ++n) {
+		last = c;
+		c += (boost::math::zeta<T>(n + 1) - 1) / n;
 	}
 
-	return exp(c - 1);
+	static const T ALLADI_GRINSTEAD = exp(c - 1);
+	return ALLADI_GRINSTEAD;
 }
 
-arb aperys()
-{
-	return boost::math::zeta<arb>(3);
+template<typename T> T aperys() {
+	static const T APERYS = boost::math::zeta<T>(3);
+	return APERYS;
 }
 
-arb buffons()
-{
-	return 2 / boost::math::constants::pi<arb>();
+template<typename T> T buffons() {
+	static const T BUFFONS = 2 / boost::math::constants::pi<T>();
+	return BUFFONS;
 }
 
-arb catalans()
-{
-	const arb PI = boost::math::constants::pi<arb>();
-	return 0.125 * (boost::math::trigamma<arb>(0.25) - PI * PI);
+template<typename T> T catalans() {
+	static const T PI = boost::math::constants::pi<T>();
+	static const T CATALANS = 0.125
+		* (boost::math::trigamma<T>(0.25) - PI * PI);
+	return CATALANS;
 }
 
-arb champernowne(const unsigned long long b = 10)
-{
-	arb c;
-	for(unsigned long long n = 1;; ++n) {
-		arb sub;
+// cannot use static const
+template<typename T> T champernowne(const unsigned long long b = 10) {
+	T c, last;
+
+	for(unsigned long long n = 1; n == 1 || c != last; ++n) {
+		T sub;
 
 		for(unsigned long long k = 1; k <= n; ++k) {
 			sub += floor(log(k) / log(b));
 		}
 
-		const arb last = c;
+		last = c;
 		c += n / pow(b, n + sub);
-		if(c == last) break;
 	}
-
 	return c;
 }
 
-arb delian()
-{
-	return boost::math::cbrt<arb>(2);
+template<typename T> T delian() {
+	static const T DELIAN = boost::math::cbrt<T>(2);
+	return DELIAN;
 }
 
-arb dottie()
-{
-	arb x;
-	std::string precomp, postcomp;
+template<typename T> T e() {
+	static const T E = boost::math::constants::e<T>();
+	return E;
+}
 
-	for(x = 1; x == 1 || precomp != postcomp;) {
-		precomp = static_cast<std::string>(x);
-		precomp.resize(PRECISION);
+template<typename T> T erdos_borwein() {
+	T e, last;
 
-		x -= (cos(x) - x) / (-sin(x) - 1);
-
-		postcomp = static_cast<std::string>(x);
-		postcomp.resize(PRECISION);
+	for(unsigned long long n = 1; n == 1 || e != last; ++n) {
+		last = e;
+		e += 1 / (pow(static_cast<T>(2), n) - 1);
 	}
 
-	return x;
+	static const T ERDOS_BORWEIN = e;
+	return ERDOS_BORWEIN;
 }
 
-arb e()
-{
-	return boost::math::constants::e<arb>();
+template<typename T> T euler_mascheroni() {
+	static const T EULER_MASCHERONI = boost::math::constants::euler<T>();
+	return EULER_MASCHERONI;
 }
 
-arb erdos_borwein()
-{
-	arb e;
-
-	for(unsigned long long n = 1;; ++n) {
-		const arb last = e;
-		e += 1 / (pow(static_cast<arb>(2), n) - 1);
-		if(e == last) break;
-	}
-
-	return e;
-}
-
-arb euler_mascheroni()
-{
-	return boost::math::constants::euler<arb>();
-}
-
-arb favard(const unsigned long long r = 2)
-{
-	if(r % 2 == 0) {
-		return (-4 / boost::math::constants::pi<arb>()) *
-			(pow(-2, static_cast<arb>(-2) * (r + 1)) / boost::math::tgamma<arb>(r + 1)) *
-			(boost::math::polygamma<arb>(r, static_cast<arb>(0.25)) - boost::math::polygamma<arb>(r, static_cast<arb>(0.75)));
+// cannot use static const
+template<typename T> T favard(const unsigned long long r = 2) {	
+	if(r % 2) {
+		return (4 / boost::math::constants::pi<T>())
+			* ((1 - pow(2, -(static_cast<T>(r) + 1)))
+			* boost::math::zeta<T>(r + 1));
 	} else {
-		return (4 / boost::math::constants::pi<arb>()) *
-			((1 - pow(2, -(static_cast<arb>(r) + 1))) * boost::math::zeta<arb>(r + 1));
+		return (-4 / boost::math::constants::pi<T>())
+			* (pow(-2, static_cast<T>(-2)
+			* (r + 1)) / boost::math::tgamma<T>(r + 1))
+			* (boost::math::polygamma<T>(r, static_cast<T>(0.25))
+			- boost::math::polygamma<T>(r, static_cast<T>(0.75)));
 	}
 }
 
-arb gauss()
-{
-	const arb ROOT_TWO = boost::math::constants::root_two<arb>(),
-		PI = boost::math::constants::pi<arb>();
-	return pow(boost::math::tgamma<arb>(0.25), 2)
-		/ (2 * ROOT_TWO * pow(PI, 3 / static_cast<arb>(2)));
+template<typename T> T gauss() {
+	static const T ROOT_TWO = boost::math::constants::root_two<T>(),
+		PI = boost::math::constants::pi<T>();
+	static const T GAUSS = pow(boost::math::tgamma<T>(0.25), 2)
+		/ (2 * ROOT_TWO * pow(PI, 3 / static_cast<T>(2)));
+	return GAUSS;
 }
 
-arb gelfond_schneider()
-{
-	return pow(2, boost::math::constants::root_two<arb>());
+template<typename T> T gelfond_schneider() {
+	static const T GELFOND_SCHNEIDER =
+		pow(2, boost::math::constants::root_two<T>());
+	return GELFOND_SCHNEIDER;
 }
 
-arb gelfonds()
-{
-	return pow(boost::math::constants::e<arb>(), boost::math::constants::pi<arb>());
+template<typename T> T gelfonds() {
+	static const T PI = boost::math::constants::pi<T>(),
+		E = boost::math::constants::e<T>();
+	static const T GELFONDS = pow(E, PI);
+	return GELFONDS;
 }
 
-arb giesekings()
-{
-	return (9 - boost::math::trigamma<arb>(2 / static_cast<arb>(3)) +
-		boost::math::trigamma<arb>(4 / static_cast<arb>(3))) /
-		(4 * boost::math::constants::root_three<arb>());
+template<typename T> T giesekings() {
+	static const T GIESEKINGS = 
+		(9 - boost::math::trigamma<T>(2 / static_cast<T>(3))
+			+ boost::math::trigamma<T>(4 / static_cast<T>(3)))
+		/ (4 * boost::math::constants::root_three<T>());
+	return GIESEKINGS;
 }
 
-arb glaisher_kinkelin()
-{
-	return boost::math::constants::glaisher<arb>();
+template<typename T> T glaisher_kinkelin() {
+	static const T GLAISHER_KINKELIN =
+		boost::math::constants::glaisher<T>();
+	return GLAISHER_KINKELIN;
 }
 
-arb golden_ratio()
-{
-	return boost::math::constants::phi<arb>();
+template<typename T> T golden_ratio() {
+	static const T GOLDEN_RATIO = boost::math::constants::phi<T>();
+	return GOLDEN_RATIO;
 }
 
-std::complex<arb> i()
-{
-	return std::complex<arb>(0,1);
+template<typename T> std::complex<T> i() {
+	static const std::complex<T> I (0, 1);
+	return I;
 }
 
-arb inverse_golden_ratio()
-{
-	return boost::math::constants::phi<arb>() - 1;
+template<typename T> T inverse_golden_ratio() {
+	static const T INVERSE_GOLDEN_RATIO =
+		boost::math::constants::phi<T>() - 1;
+	return INVERSE_GOLDEN_RATIO;
 }
 
-arb khinchin()
-{
-	return boost::math::constants::khinchin<arb>();
+template<typename T> T khinchin() {
+	static const T KHINCHIN = boost::math::constants::khinchin<T>();
+	return KHINCHIN;
 }
 
-arb khinchin_levy()
-{
-	return pow(boost::math::constants::pi<arb>(), 2) / (12 * log(static_cast<arb>(2)));
+template<typename T> T khinchin_levy() {
+	static const T KHINCHIN_LEVY = pow(boost::math::constants::pi<T>(), 2)
+		/ (12 * log(static_cast<T>(2)));
+	return KHINCHIN_LEVY;
 }
 
-arb kinkelin()
-{
-	return 1 / static_cast<arb>(12) - log(boost::math::constants::glaisher<arb>());
+template<typename T> T kinkelin() {
+	static const T KINKELIN = 1 / static_cast<T>(12) 
+		- log(boost::math::constants::glaisher<T>());
+	return KINKELIN;
 }
 
-arb knuth()
-{
-	return (1 - (1 / boost::math::constants::root_three<arb>())) / 2;
+template<typename T> T knuth() {
+	static const T KNUTH =
+		(1 - (1 / boost::math::constants::root_three<T>())) / 2;
+	return KNUTH;
 }
 
-arb levys()
-{
-	return exp(pow(boost::math::constants::pi<arb>(), 2) / (12 * log(static_cast<arb>(2))));
+template<typename T> T levys() {
+	static const T LEVYS = exp(pow(boost::math::constants::pi<T>(), 2)
+		/ (12 * log(static_cast<T>(2))));
+	return LEVYS;
 }
 
-arb liebs()
-{
-	return (8 * boost::math::constants::root_three<arb>()) / 9;
+template<typename T> T liebs() {
+	static const T LIEBS =
+		(8 * boost::math::constants::root_three<T>()) / 9;
+	return LIEBS;
 }
 
-arb lochs()
-{
-	return (6 * log(static_cast<arb>(2)) * log(static_cast<arb>(10))) /
-		pow(boost::math::constants::pi<arb>(), 2);
+template<typename T> T lochs() {
+	static const T LOCHS =
+		(6 * log(static_cast<T>(2)) * log(static_cast<T>(10)))
+		/ pow(boost::math::constants::pi<T>(), 2);
+	return LOCHS;
 }
 
-arb niven()
-{
-	arb c;
-	for(unsigned long long j = 2;; ++j) {
-		const arb last = c;
-		c+= 1 - 1/boost::math::zeta<arb>(j);
-		if(c == last) break;
-	}
-	return c + 1;
-}
+template<typename T> T niven() {
+	T c, last;
 
-arb nortons()
-{
-	const arb PI = boost::math::constants::pi<arb>(),
-		EULER = boost::math::constants::euler<arb>(),
-		GLAISHER = boost::math::constants::glaisher<arb>(),
-		PI_SQR = pow(PI, 2),
-		LOG_TWO = log(static_cast<arb>(2));
-	return -((PI_SQR - 6 * LOG_TWO * (-3 + 2 * EULER + LOG_TWO + 24 * log(GLAISHER) - 2 * log(PI))) / PI_SQR);
-}
-
-arb omega()
-{
-	arb omega;
-	std::string precomp, postcomp;
-
-	for(omega = 0; omega == 0 || precomp != postcomp;) {
-		precomp = static_cast<std::string>(omega);
-		precomp.resize(PRECISION);
-
-		omega -= ((omega * exp(omega)) - 1) /
-			(exp(omega) * (omega + 1) - ((omega + 2) * (omega * exp(omega) - 1) / ((2 * omega) + 2)));
-
-		postcomp = static_cast<std::string>(omega);
-		postcomp.resize(PRECISION);
+	for(unsigned long long j = 2; j == 2 || c != last; ++j) {
+		last = c;
+		c+= 1 - 1/boost::math::zeta<T>(j);
 	}
 
-	return omega;
+	static const T NIVEN = c + 1;
+	return NIVEN;
 }
 
-arb one()
-{
-	return 1;
+template<typename T> T nortons() {
+	static const T PI = boost::math::constants::pi<T>(),
+		EULER = boost::math::constants::euler<T>(),
+		GLAISHER = boost::math::constants::glaisher<T>(),
+		LOG_TWO = log(static_cast<T>(2));
+	static const T NORTONS = -(pow(PI, 2) - 6 * LOG_TWO 
+		* (-3 + 2 * EULER + LOG_TWO + 24 * log(GLAISHER) - 2 * log(PI))) 
+		/ pow(PI, 2);
+	return NORTONS;
 }
 
-arb pi()
-{
-	return boost::math::constants::pi<arb>();
+template<typename T> T omega() {
+	T w, last;
+
+	for(w = 0; w == 0 || w != last;) {	
+		last = w;
+		w -= ((w * exp(w)) - 1)
+			/ (exp(w) * (w + 1) - ((w + 2) * (w * exp(w) - 1) / ((2 * w) + 2)));
+	}
+
+	static const T OMEGA = w;
+	return OMEGA;
 }
 
-arb plastic_number()
-{
-	return (boost::math::cbrt<arb>(108 + 12 * sqrt(static_cast<arb>(69))) + 
-		boost::math::cbrt<arb>(108 - 12 * sqrt(static_cast<arb>(69)))) / static_cast<arb>(6);
+template<typename T> T one() {
+	static const T ONE = 1;
+	return ONE;
 }
 
-arb pogsons()
-{
-	return pow(100, 1 / static_cast<arb>(5));
+template<typename T> T pi() {
+	static const T PI = boost::math::constants::pi<T>();
+	return PI;
 }
 
-arb polyas_random_walk()
-{
-	const arb PI = boost::math::constants::pi<arb>(),
+template<typename T> T plastic_number() {
+	static const T PLASTIC_NUMBER = (boost::math::cbrt<T>(108 + 12
+		* sqrt(static_cast<T>(69))) + boost::math::cbrt<T>(108 - 12
+		* sqrt(static_cast<T>(69)))) / static_cast<T>(6);
+	return PLASTIC_NUMBER;
+}
+
+template<typename T> T pogsons() {
+	static const T POGSONS = pow(100, 1 / static_cast<T>(5));
+	return POGSONS;
+}
+
+template<typename T> T polyas_random_walk() {
+	static const T PI = boost::math::constants::pi<T>(),
 		PI_CBD = pow(PI, 3),
-		ROOT_SIX = sqrt(static_cast<arb>(6));
-	return 1 - 1/((ROOT_SIX / (32 * PI_CBD)) *
-        boost::math::tgamma<arb>(1 / static_cast<arb>(24)) *
-        boost::math::tgamma<arb>(5 / static_cast<arb>(24)) *
-        boost::math::tgamma<arb>(7 / static_cast<arb>(24)) *
-        boost::math::tgamma<arb>(11 / static_cast<arb>(24)));
+		ROOT_SIX = sqrt(static_cast<T>(6));
+	static const T POLYAS_RANDOM_WALK = 1 - 1/((ROOT_SIX / (32 * PI_CBD))
+		* boost::math::tgamma<T>(1 / static_cast<T>(24))
+		* boost::math::tgamma<T>(5 / static_cast<T>(24))
+		* boost::math::tgamma<T>(7 / static_cast<T>(24))
+		* boost::math::tgamma<T>(11 / static_cast<T>(24)));
+	return POLYAS_RANDOM_WALK;
 }
 
-arb porters()
-{
-	const arb PI = boost::math::constants::pi<arb>(),
-		GLAISHER = boost::math::constants::glaisher<arb>();
-	return ((6 * log(static_cast<arb>(2)) * (48 * log(GLAISHER) - log(static_cast<arb>(2)) - 4 * log(PI) - 2))
-		/ pow(PI, 2)) - (1 / static_cast<arb>(2));
+template<typename T> T porters() {
+	static const T PI = boost::math::constants::pi<T>(),
+		GLAISHER = boost::math::constants::glaisher<T>();
+	static const T PORTERS = ((6 * log(static_cast<T>(2))
+		* (48 * log(GLAISHER) - log(static_cast<T>(2)) - 4 * log(PI) - 2))
+		/ pow(PI, 2)) - (1 / static_cast<T>(2));
+	return PORTERS;
 }
 
-arb prince_ruperts_cube()
-{
-	return (3 * boost::math::constants::root_two<arb>()) / 4;
+template<typename T> T prince_ruperts_cube() {
+	static const T PRINCE_RUPERTS_CUBE =
+		(3 * boost::math::constants::root_two<T>()) / 4;
+	return PRINCE_RUPERTS_CUBE;
 }
 
-arb pythagoras()
-{
-	return boost::math::constants::root_two<arb>();
+template<typename T> T pythagoras() {
+	static const T PYTHAGORAS = boost::math::constants::root_two<T>();
+	return PYTHAGORAS;
 }
 
-arb robbins()
-{
-	const arb PI = boost::math::constants::pi<arb>(),
-		ROOT_TWO = boost::math::constants::root_two<arb>(),
-		ROOT_THREE = boost::math::constants::root_three<arb>();
-	return ((4 + 17 * ROOT_TWO - 6 * ROOT_THREE - 7 * PI) / 105)
-		+ (log(1 + ROOT_TWO) / 5) + ((2 * log(2 + ROOT_THREE)) / 5);
+template<typename T> T robbins() {
+	static const T PI = boost::math::constants::pi<T>(),
+		ROOT_TWO = boost::math::constants::root_two<T>(),
+		ROOT_THREE = boost::math::constants::root_three<T>();
+	static const T ROBBINS = ((4 + 17 * ROOT_TWO - 6 * ROOT_THREE - 7 * PI)
+		/ 105) + (log(1 + ROOT_TWO) / 5) + ((2 * log(2 + ROOT_THREE)) / 5);
+	return ROBBINS;
 }
 
-arb sierpinski_k()
-{
-	const arb PI = boost::math::constants::pi<arb>(),
-		E = boost::math::constants::e<arb>(),
-		EULER = boost::math::constants::euler<arb>();
-	return PI * log((4 * pow(PI, 3) * pow(E, 2 * EULER)) / pow(boost::math::tgamma<arb>(0.25), 4));
+template<typename T> T sierpinski_k() {
+	static const T PI = boost::math::constants::pi<T>(),
+		E = boost::math::constants::e<T>(),
+		EULER = boost::math::constants::euler<T>();
+	static const T SIERPINSKI_K = PI * log((4 * pow(PI, 3)
+		* pow(E, 2 * EULER)) / pow(boost::math::tgamma<T>(0.25), 4));
+	return SIERPINSKI_K;
 }
 
-arb sierpinski_s()
-{
-	const arb PI = boost::math::constants::pi<arb>(),
-		E = boost::math::constants::e<arb>(),
-		EULER = boost::math::constants::euler<arb>();
-	return log((4 * pow(PI, 3) * pow(E, 2 * EULER)) / pow(boost::math::tgamma<arb>(0.25), 4));
+template<typename T> T sierpinski_s() {
+	static const T PI = boost::math::constants::pi<T>(),
+		E = boost::math::constants::e<T>(),
+		EULER = boost::math::constants::euler<T>();
+	static const T SIERPINSKI_S = log((4 * pow(PI, 3) * pow(E, 2 * EULER))
+		/ pow(boost::math::tgamma<T>(0.25), 4));
+	return SIERPINSKI_S;
 }
 
-arb silver_ratio()
-{
-	return boost::math::constants::root_two<arb>() + 1;
+template<typename T> T silver_ratio() {
+	static const T SILVER_RATIO = boost::math::constants::root_two<T>() + 1;
+	return SILVER_RATIO;
 }
 
-arb theodorus()
-{
-	return boost::math::constants::root_three<arb>();
+template<typename T> T theodorus() {
+	static const T THEODORUS = boost::math::constants::root_three<T>();
+	return THEODORUS;
 }
 
-arb twenty_vertex_entropy()
-{
-	return (3 * boost::math::constants::root_three<arb>()) / 2;
+template<typename T> T twenty_vertex_entropy() {
+	static const T TWENTY_VERTEX_ENTROPY =
+		(3 * boost::math::constants::root_three<T>()) / 2;
+	return TWENTY_VERTEX_ENTROPY;
 }
 
-arb weierstrass()
-{
-	const arb PI = boost::math::constants::pi<arb>(),
-		E = boost::math::constants::e<arb>();
-	return (pow(2, static_cast<arb>(1.25)) * sqrt(PI) * pow(E, PI / 8)) /
-		pow(boost::math::tgamma<arb>(0.25), 2);
+template<typename T> T weierstrass() {
+	static const T PI = boost::math::constants::pi<T>(),
+		E = boost::math::constants::e<T>();
+	static const T WEIERSTRASS = (pow(2, static_cast<T>(1.25)) * sqrt(PI)
+		* pow(E, PI / 8)) / pow(boost::math::tgamma<T>(0.25), 2);
+	return WEIERSTRASS;
 }
 
-arb wylers() {
-	const arb PI = boost::math::constants::pi<arb>();
-	return (9 / (8 * pow(PI, 4))) * pow(pow(PI, 5) / 1920, 0.25);
+template<typename T> T wylers() {
+	static const T PI = boost::math::constants::pi<T>();
+	static const T WYLERS = (9 / (8 * pow(PI, 4)))
+		* pow(pow(PI, 5) / 1920, 0.25);
+	return WYLERS;
 }
 
-arb zero()
-{
-	return 0;
+template<typename T> T zero() {
+	static const T ZERO = 0;
+	return ZERO;
 }
 
-int main()
-{
-	std::cout << std::fixed << std::setprecision(PRECISION)
-		<< wylers() << '\n';
+int main() {
+	const unsigned long long PRECISION = 500;
+
+	typedef boost::multiprecision::number<
+		boost::multiprecision::cpp_dec_float<PRECISION> > arb;
+
+	std::cout << std::setprecision(std::numeric_limits<arb>::digits10)
+		<< wylers<arb>() << '\n';
+
 	return 0;
 }
