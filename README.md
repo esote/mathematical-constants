@@ -1,1 +1,1 @@
-Refer to https://esote.net/mathematical-constants.html
+Refer to https://esote.net/mathconst.html
